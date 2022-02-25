@@ -6,6 +6,11 @@
 
 #include <stack>
 
+#ifdef VITA
+#include <vitasdk.h>
+int _newlib_heap_size_user = 192 * 1024 * 1024;
+#endif
+
 #define ENEMY_W(i) Level::enemiesArray->data[i].img[0]
 #define ENEMY_H(i) Level::enemiesArray->data[i].img[1]
 
@@ -167,7 +172,11 @@ int main(int argc, char **argv)
 			items[1].labelsNb = 3;
 			items[2].labels = string_bools;
 			items[2].labelsNb = 2;
+#ifdef VITA
+			Menu m(3, items[0], items[1], items[2]);
+#else
 			Menu m(4, items[0], items[1], items[2], items[3]);
+#endif
 			choice = m.run();
 			if (choice == -1) donePlaying = true;
 			else if (choice == 3)

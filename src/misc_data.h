@@ -9,12 +9,18 @@ static const char string_continue[] = "Continue ? (Enter/Esc : yes/no)";
 
 static char* string_bools[] = { "no\n", "yes\n" };
 
+#ifdef VITA
+#define TITLE_OPTIONS 3
+#else
 #define TITLE_OPTIONS 4
+#endif
 static char* string_options[TITLE_OPTIONS] = {
 	"nPlay\n",
 	"iDifficulty:",
 	"bUse arrow keys:",
+#ifndef VITA // Causes a crash somehow
 	"nConfigure controls\n"
+#endif
 };
 
 #define KEYS_TO_BIND 4
