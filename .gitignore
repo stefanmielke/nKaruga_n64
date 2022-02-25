@@ -1,3 +1,8 @@
+*.o
+*.velf
+*.elf
+*.bin
+
 bin/*
 ost
 releases
