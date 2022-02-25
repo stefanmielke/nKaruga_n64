@@ -5,6 +5,16 @@
 extern "C" {
 #endif
 
+#ifndef min
+#define min(a,b) (((a)<(b))?(a):(b))
+#define max(a,b) (((a)>(b))?(a):(b))
+#endif
+
+#ifdef VITA
+#include <vitasdk.h>
+#include <vita2d.h>
+#endif
+
 /*             *
  *  Buffering  *
  *             */
@@ -18,12 +28,22 @@ Uint32 baseFPS;
 
 void initBuffering()
 {
+#ifdef VITA2D
+	SDL_Init(SDL_INIT_AUDIO);
+	vita2d_init();
+#else
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-	
+#endif
+#ifndef VITA2D
 	// This fixes the fullscreen/resize crash, see line 97
+#ifndef VITA
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-	
 	SDL_CreateWindowAndRenderer(320 * 2, 240 * 2, SDL_WINDOW_BORDERLESS, &sdlWindow, &sdlRenderer);
+#else
+	sdlWindow = SDL_CreateWindow("nKaruga", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 544, SDL_WINDOW_FULLSCREEN_DESKTOP);  
+	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+#endif
+
 	SDL_RenderSetLogicalSize(sdlRenderer, 320, 240);
 	if(!sdlWindow || !sdlRenderer)
 	{
@@ -35,12 +55,24 @@ void initBuffering()
 	MAIN_SCREEN = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 320, 240);
 
 	BUFF_BASE_ADDRESS = (unsigned short*)malloc(320 * 240 * sizeof(unsigned short));
+#else
+	vita2d_texture_set_alloc_memblock_type(SCE_KERNEL_MEMBLOCK_TYPE_USER_RW);
+	MAIN_SCREEN = (SDL_Texture *)vita2d_create_empty_texture_format(320, 240, SCE_GXM_TEXTURE_FORMAT_U5U6U5_RGB);
+	BUFF_BASE_ADDRESS = (unsigned short*)vita2d_texture_get_datap((vita2d_texture *)MAIN_SCREEN);
+#endif
 	memset(BUFF_BASE_ADDRESS, 0, sizeof(BUFF_BASE_ADDRESS));
-	
+
 	baseFPS = SDL_GetTicks();
 	SDL_PumpEvents();
+#ifdef VITA
+	SceCtrlData pad;
+	sceCtrlPeekBufferPositive(0, &pad, 1);
+	G_keys = pad.buttons;
+#else
 	G_keys = SDL_GetKeyboardState(NULL);
+#endif
 }
+
 void toggleFullscreen()
 {
 	if(SDL_GetWindowFlags(sdlWindow) & SDL_WINDOW_MAXIMIZED)
@@ -51,6 +83,7 @@ void toggleFullscreen()
 
 void constrainFrameRate(int fps)
 {
+#ifndef VITA
 	static Uint32 secondCount = 1001, secondBase = 0, FPScount = 0, FPSdisp = 0;
 	int x, y;
 	Uint32 d = 1000 / fps;
@@ -58,6 +91,7 @@ void constrainFrameRate(int fps)
 	if(elapsed < d)
 		SDL_Delay(d - elapsed);
 	baseFPS = SDL_GetTicks();
+#endif
 }
 
 void displayFrameRate()
@@ -79,16 +113,21 @@ void displayFrameRate()
 
 void updateScreen()
 {
+#ifndef VITA2D
 	static int toggled = 0;
 	int di;
 	uint8_t *pixels;
 	uint8_t *buf = (uint8_t*)BUFF_BASE_ADDRESS;
 	int pitch;
 	SDL_LockTexture(MAIN_SCREEN, NULL, (void**)&pixels, &pitch);
+#ifndef VITA	
 	for (di = 0; di < 320 * 240 * sizeof(unsigned short); di += sizeof(unsigned int))
 		*(unsigned int*)(pixels + di) = *(unsigned int*)(buf + di);
+#else
+	sceClibMemcpy(pixels, buf, 320 * 240 * sizeof(unsigned short));
+#endif
 	SDL_UnlockTexture(MAIN_SCREEN);
-	
+#ifndef VITA	
 	if(G_keys[SDL_SCANCODE_F])
 	{
 		if(!toggled)
@@ -99,25 +138,40 @@ void updateScreen()
 	}
 	else
 		toggled = 0;
-	
+#endif
 	SDL_RenderCopy(sdlRenderer, MAIN_SCREEN, NULL, NULL);
 	SDL_RenderPresent(sdlRenderer);
+#else
+	vita2d_start_drawing();
+	vita2d_draw_texture_scale((vita2d_texture *)MAIN_SCREEN, 117, 0, 2.26667f, 2.26667f);
+	vita2d_end_drawing();
+	vita2d_wait_rendering_done();
+	vita2d_swap_buffers();
+#endif
 	updateKeys();
 }
 
 void updateKeys()
 {
 	SDL_PumpEvents();
+#ifdef VITA
+	SceCtrlData pad;
+	sceCtrlPeekBufferPositive(0, &pad, 1);
+	G_keys = pad.buttons;
+#else
 	G_keys = SDL_GetKeyboardState(NULL);
+#endif
 }
 
 void deinitBuffering()
 {
+#ifndef VITA
 	SDL_DestroyTexture(MAIN_SCREEN);
 	SDL_DestroyRenderer(sdlRenderer);
 	SDL_DestroyWindow(sdlWindow);
 	SDL_Quit();
 	free(BUFF_BASE_ADDRESS);
+#endif
 }
 
 /*        *
@@ -238,16 +292,24 @@ int interpolatePathFloat(int curT, float _x[], float _y[], int _t[], int nb, Rec
 
 void clearBufferB()
 {
+#ifdef VITA
+	sceClibMemset(BUFF_BASE_ADDRESS, 0, 320 * 240 * 2);
+#else
 	int i;
 	for(i = 0; i < 160 * 240; i++)
 		((unsigned int*)BUFF_BASE_ADDRESS)[i] = 0;
+#endif
 }
 
 void clearBufferW()
 {
+#ifdef VITA
+	sceClibMemset(BUFF_BASE_ADDRESS, 0xFF, 320 * 240 * 2);
+#else
 	int i;
 	for(i = 0; i < 160 * 240; i++)
 		((unsigned int*)BUFF_BASE_ADDRESS)[i] = 0xffffffff;
+#endif
 }
 
 void clearBuffer(unsigned short c)
@@ -258,6 +320,7 @@ void clearBuffer(unsigned short c)
 			*((unsigned int*)BUFF_BASE_ADDRESS + i) = ci;
 }
 
+#ifndef VITA
 unsigned short getPixelUnsafe(const unsigned short *src, unsigned int x, unsigned int y)
 {
 	return src[x + y * src[0] + 3];
@@ -276,17 +339,18 @@ void setPixelUnsafe(unsigned int x, unsigned int y, unsigned short c)
 	*((unsigned short*)BUFF_BASE_ADDRESS + x + y * 320) = c;
 }
 
- void setPixel(unsigned int x, unsigned int y, unsigned short c)
+void setPixel(unsigned int x, unsigned int y, unsigned short c)
 {
 	if(x < 320 && y < 240)
 		*((unsigned short*)BUFF_BASE_ADDRESS + x + y * 320) = c;
 }
 
- void setPixelRGB(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b)
+void setPixelRGB(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b)
 {
 	if(x < 320 && y < 240)
 		*((unsigned short*)BUFF_BASE_ADDRESS + x + y * 320) = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
 }
+#endif
 
 void drawHLine(int y, int x1, int x2, unsigned short c)
 {
@@ -605,10 +669,11 @@ void drawChar(int *x, int *y, int margin, char ch, unsigned short fc, unsigned s
 		{
 			for(j = 7; j >= 0; j--)
 			{
-				if((charSprite[i] >> j) & 1)
+				if((charSprite[i] >> j) & 1) {
 					setPixel(*x + (7 - j), *y + i, fc);
-				else if(isOutlinePixel(charSprite, 7 - j, i))
+				} else if(isOutlinePixel(charSprite, 7 - j, i)) {
 					setPixel(*x + (7 - j), *y + i, olc);
+				}
 			}
 		}
 		*x += 8;
@@ -697,11 +762,19 @@ const t_key *G_keys;
 
 void wait_no_key_pressed(t_key k)
 {
+#ifdef VITA
+	SceCtrlData pad;
+	while (G_keys) {
+		sceCtrlPeekBufferPositive(0, &pad, 1);
+		G_keys = pad.buttons;
+	}
+#else
 	while (G_keys[k])
 	{
 		SDL_PumpEvents();
 		G_keys = SDL_GetKeyboardState(NULL);
 	}
+#endif
 }
 
 int get_key_pressed(t_key* report)

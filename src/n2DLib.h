@@ -6,6 +6,10 @@
 #include <string.h>
 #include <SDL.h>
 
+#define BUFF_BYTES_SIZE (320*240*2)
+extern unsigned short *BUFF_BASE_ADDRESS;
+extern SDL_Texture *MAIN_SCREEN;
+
 #if defined(__cplusplus) && !defined(min) && !defined(max)
 inline int min(int a, int b)
 {
@@ -62,11 +66,40 @@ extern unsigned timer_read(unsigned);
 extern void clearBufferB();
 extern void clearBufferW();
 extern void clearBuffer(unsigned short);
+#ifndef VITA
 extern unsigned short getPixelUnsafe(const unsigned short*, unsigned int, unsigned int);
 extern unsigned short getPixel(const unsigned short*, unsigned int, unsigned int);
 extern void setPixelUnsafe(unsigned int, unsigned int, unsigned short);
 extern void setPixel(unsigned int, unsigned int, unsigned short);
 extern void setPixelRGB(unsigned int, unsigned int, unsigned char, unsigned char, unsigned char);
+#else
+static inline unsigned short getPixelUnsafe(const unsigned short *src, unsigned int x, unsigned int y)
+{
+	return src[x + y * src[0] + 3];
+}
+
+static inline unsigned short getPixel(const unsigned short *src, unsigned int x, unsigned int y)
+{
+	if(x < src[0] && y < src[1])
+		return src[x + y * src[0] + 3];
+	else
+		return src[2];
+}
+
+#define setPixelUnsafe(x, y, c) *((unsigned short*)BUFF_BASE_ADDRESS + (x) + (y) * 320) = c;
+
+static inline void setPixel(unsigned int x, unsigned int y, unsigned short c)
+{
+	if(x < 320 && y < 240)
+		*((unsigned short*)BUFF_BASE_ADDRESS + x + y * 320) = c;
+}
+
+static inline void setPixelRGB(unsigned int x, unsigned int y, unsigned char r, unsigned char g, unsigned char b)
+{
+	if(x < 320 && y < 240)
+		*((unsigned short*)BUFF_BASE_ADDRESS + x + y * 320) = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+}
+#endif
 extern void drawHLine(int, int, int, unsigned short);
 extern void drawVLine(int, int, int, unsigned short);
 extern void fillRect(int, int, int, int, unsigned short);
@@ -88,11 +121,7 @@ extern void wait_no_key_pressed(t_key);
 extern int get_key_pressed(t_key*);
 extern int isKey(t_key, t_key);
 
-extern unsigned short * loadBMP(const char*, unsigned short);
-
-#define BUFF_BYTES_SIZE (320*240*2)
-extern unsigned short *BUFF_BASE_ADDRESS;
-extern SDL_Texture *MAIN_SCREEN;
+extern unsigned short *loadBMP(const char*, unsigned short);
 
 // Global key state
 extern const t_key *G_keys;
