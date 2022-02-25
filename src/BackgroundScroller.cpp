@@ -30,6 +30,14 @@ BackgroundScroller::BackgroundScroller(unsigned short *bg, Fixed _x, Fixed _y, F
 	scrollScale = sscale;
 	displayScale = dscale;
 	handle = bgHandle[bgHandleID];
+	
+	Fixed sourceX = -((x + fixmul(dx, scrollScale)) % itofix(w)) + itofix(w);
+	sourceX %= itofix(w);
+	
+	for(int sx = 0; sx < 320; sx++, sourceX = (sourceX + displayScale) % itofix(w))
+	{
+		scrollX[sx] = sourceX;
+	}
 }
 
 BackgroundScroller::~BackgroundScroller()
@@ -38,18 +46,14 @@ BackgroundScroller::~BackgroundScroller()
 
 void BackgroundScroller::draw()
 {
-	Fixed sourceX = -((x + fixmul(dx, scrollScale)) % itofix(w)) + itofix(w),
-		sourceY = -((y + fixmul(dy, scrollScale)) % itofix(h)) + itofix(h);
-	sourceX %= itofix(w);
+	Fixed sourceY = -((y + fixmul(dy, scrollScale)) % itofix(h)) + itofix(h);
 	sourceY %= itofix(h);
-	Fixed originX = sourceX;
 	
 	for(int sy = 0; sy < 240; sy++, sourceY = (sourceY + displayScale) % itofix(h))
 	{
-		sourceX = originX;
-		for(int sx = 0, sourceX = originX; sx < 320; sx++, sourceX = (sourceX + displayScale) % itofix(w))
+		for(int sx = 0; sx < 320; sx++)
 		{
-			unsigned short c = img[fixtoi(sourceY) * w + fixtoi(sourceX)];
+			unsigned short c = img[fixtoi(sourceY) * w + fixtoi(scrollX[sx])];
 			if (c != colorKey)
 				setPixelUnsafe(sx, sy, c);
 		}

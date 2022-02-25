@@ -593,6 +593,7 @@ public:
 	Fixed scrollScale;
 	Fixed displayScale;
 	backgroundHandle handle;
+	Fixed scrollX[320];
 };
 
 // Text notifications of score-chaining
