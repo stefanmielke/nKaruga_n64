@@ -19,7 +19,7 @@ void BulletArray::handle()
 	int bossDamaged;
 	
 	// Bullets
-	for (int i = 0; i < bulletCount; i++)
+	for (unsigned int i = 0; i < bulletCount; i++)
 	{
 		Bullet *cb = &data[i];
 		destroyBullet = false;
@@ -110,7 +110,7 @@ void BulletArray::handle()
 	}	
 	
 	// Power fragments
-	for(int i = 0; i < fragmentCount; i++)
+	for(unsigned int i = 0; i < fragmentCount; i++)
 	{
 		PowerFragment *cf = &data_fragment[i];
 		destroyBullet = false;
@@ -146,7 +146,7 @@ void BulletArray::handle()
 				// A power fragment can hit other enemies than its registered target
 				if(cf->targetE)
 				{
-					for (int i = 0; i < MAX_ENEMY; i++)
+					for (unsigned int i = 0; i < MAX_ENEMY; i++)
 					{
 						Enemy *ce = &Level::enemiesArray->data[i];
 						if(ce->isActive() && (ce->isDamageable() || !ce->isProp()))
@@ -193,7 +193,7 @@ void BulletArray::handle()
 	}
 	
 	// Homings
-	for(int i = 0; i < homingCount; i++)
+	for(unsigned int i = 0; i < homingCount; i++)
 	{
 		Homing* ch = &data_homing[i];
 		destroyBullet = false;
@@ -237,7 +237,7 @@ void BulletArray::handle()
 	}
 	
 	// Lasers
-	for(int i = 0; i < MAX_LASER; i++)
+	for(unsigned int i = 0; i < MAX_LASER; i++)
 	{
 		Rect *r, r1, r2;
 		Laser *cl = &data_laser[i];
@@ -364,7 +364,7 @@ void BulletArray::deactivate(int n, bool playSound)
 {
 	bulletCount--;
 	data[n].deactivate();
-	for(int i = n; i < bulletCount; i++)
+	for(unsigned int i = n; i < bulletCount; i++)
 		data[i] = data[i + 1];
 	if(playSound) Level::soundSystem->quickPlaySFX(sound_entries[SD_BULLET_IMPACT]);
 	//data[bulletCount].deactivate();
@@ -374,7 +374,7 @@ void BulletArray::deactivate_fragment(int n)
 {
 	fragmentCount--;
 	data_fragment[n].deactivate();
-	for(int i = n; i < fragmentCount; i++)
+	for(unsigned int i = n; i < fragmentCount; i++)
 		data_fragment[i] = data_fragment[i + 1];
 	//data_fragment[fragmentCount].deactivate();
 }
@@ -383,14 +383,14 @@ void BulletArray::deactivate_homing(int n)
 {
 	homingCount--;
 	data_homing[n].deactivate();
-	for(int i = n; i < homingCount; i++)
+	for(unsigned int i = n; i < homingCount; i++)
 		data_homing[i] = data_homing[i + 1];
 	//data_homing[homingCount].deactivate();
 }
 
 void BulletArray::stop_laser(Enemy *e)
 {
-	for(int i = 0; i < MAX_LASER; i++)
+	for(unsigned int i = 0; i < MAX_LASER; i++)
 	{
 		if(data_laser[i].origin == e)
 		{
@@ -403,11 +403,11 @@ void BulletArray::stop_laser(Enemy *e)
 // Destroy all bullets except for lasers
 void BulletArray::clear()
 {
-	for(int i = 0; i < bulletCount; i++)
+	for(unsigned int i = 0; i < MAX_BULLET; i++)
 		data[i].deactivate();
-	for(int i = 0; i < fragmentCount; i++)
+	for(unsigned int i = 0; i < MAX_FRAGMENT; i++)
 		data_fragment[i].deactivate();
-	for(int i = 0; i < homingCount; i++)
+	for(unsigned int i = 0; i < MAX_HOMING; i++)
 		data_homing[i].deactivate();
 	bulletCount = 0;
 	fragmentCount = 0;
