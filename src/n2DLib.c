@@ -35,6 +35,12 @@ void initBuffering()
 #ifdef VITA2D
 	SDL_Init(SDL_INIT_AUDIO);
 	vita2d_init();
+#elif N64
+	if (SDL_Init(SDL_INIT_VIDEO) == -1)
+	{
+		fprintf(stderr, "error: failed to initialize SDL video: %s\n", SDL_GetError());
+		exit(1);
+	}
 #else
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 #endif
@@ -44,7 +50,8 @@ void initBuffering()
 	sdlWindow = SDL_CreateWindow("nKaruga", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 544, SDL_WINDOW_FULLSCREEN_DESKTOP);  
 	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 #elif N64
-	SDL_CreateWindowAndRenderer(320, 240, SDL_WINDOW_BORDERLESS, &sdlWindow, &sdlRenderer);
+	sdlWindow = SDL_CreateWindow("nKaruga", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 320, 240, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
 #else
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 	SDL_CreateWindowAndRenderer(320 * 2, 240 * 2, SDL_WINDOW_BORDERLESS, &sdlWindow, &sdlRenderer);
@@ -54,8 +61,10 @@ void initBuffering()
 	if(!sdlWindow || !sdlRenderer)
 	{
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Initialisation error", "Error when initialising SDL2, check stdout.txt for details.", NULL);
-		printf("Couldn't initialise SDL2 : %s\n", SDL_GetError());
+		fprintf(stderr, "Couldn't initialise SDL2 : %s\n", SDL_GetError());
+#ifndef N64
 		SDL_Quit();
+#endif
 		exit(1);
 	}
 	MAIN_SCREEN = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 320, 240);
@@ -176,7 +185,7 @@ void updateKeys()
 
 void deinitBuffering()
 {
-#ifndef VITA
+#if !defined VITA && !defined N64
 	SDL_DestroyTexture(MAIN_SCREEN);
 	SDL_DestroyRenderer(sdlRenderer);
 	SDL_DestroyWindow(sdlWindow);
@@ -823,7 +832,7 @@ unsigned short *loadBMP(const char *path, unsigned short transparency)
 	// Check if the file's 2 first char are BM (indicates bitmap)
 	if(!(fgetc(temp) == 0x42 && fgetc(temp) == 0x4d))
 	{
-		printf("Image is not a bitmap\n");
+		fprintf(stderr, "Image is not a bitmap\n");
 		fclose(temp);
 		return NULL;
 	}
@@ -832,7 +841,7 @@ unsigned short *loadBMP(const char *path, unsigned short transparency)
 	fseek(temp, 0x1c, SEEK_SET);
 	if(fgetc(temp) != 24)
 	{
-		printf("Wrong format : bitmap must use 24 bpp\n");
+		fprintf(stderr, "Wrong format : bitmap must use 24 bpp\n");
 		fclose(temp);
 		return NULL;
 	}
@@ -853,7 +862,7 @@ unsigned short *loadBMP(const char *path, unsigned short transparency)
 	returnValue = (uint16_t*)malloc(size * sizeof(unsigned short));
 	if(!returnValue)
 	{
-		printf("Couldn't allocate memory\n");
+		fprintf(stderr, "Couldn't allocate memory\n");
 		fclose(temp);
 		return NULL;
 	}
