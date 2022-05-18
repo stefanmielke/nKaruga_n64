@@ -316,6 +316,9 @@ void playGame()
 
 	while(!KQUIT(kEv) && !Level::gameEnded)
 	{
+		int start = get_ticks_ms();
+    	{ fprintf(stderr, "Frame: %lu\n", get_ticks_ms() - start); start = get_ticks_ms(); }
+
 		G_gpTimer++;
 		Level::waveTimer++;
 		
@@ -568,12 +571,18 @@ void playGame()
 
 		renderExplosionEffect();
 
+		{ fprintf(stderr, "Before Render: %lu\n", get_ticks_ms() - start); start = get_ticks_ms(); }
+
 		updateScreen();
+
+		{ fprintf(stderr, "After Render: %lu\n", get_ticks_ms() - start); start = get_ticks_ms(); }
 
 		// The background is dispayed after to keep the enemies(power slots, player Level::p ...) 
 		// on the screen when pausing the game
 		// Display a scrolling background
 		Level::updateBg();
+
+		{ fprintf(stderr, "updateBg: %lu\n", get_ticks_ms() - start); start = get_ticks_ms(); }
 		
 		constrainFrameRate(FPS);
 		displayFrameRate();
@@ -623,6 +632,8 @@ void playGame()
 			G_maxChain = max(G_chainStatus, G_maxChain);
 			G_frameChainOffset = 0;
 		}
+
+		{ fprintf(stderr, "End Frame: %lu\n", get_ticks_ms() - start); start = get_ticks_ms(); }
 	}
 	
 	Level::deinit();

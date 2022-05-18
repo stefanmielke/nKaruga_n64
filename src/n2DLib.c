@@ -51,7 +51,17 @@ void initBuffering()
 	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 #elif N64
 	sdlWindow = SDL_CreateWindow("nKaruga", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 320, 240, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+	if (!sdlWindow)
+	{
+		fprintf(stderr, "error: failed to create window: %s\n", SDL_GetError());
+		exit(1);
+	}
 	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
+	if (!sdlRenderer)
+	{
+		fprintf(stderr, "error: failed to create renderer: %s\n", SDL_GetError());
+		exit(1);
+	}
 #else
 	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
 	SDL_CreateWindowAndRenderer(320 * 2, 240 * 2, SDL_WINDOW_BORDERLESS, &sdlWindow, &sdlRenderer);
@@ -67,9 +77,26 @@ void initBuffering()
 #endif
 		exit(1);
 	}
-	MAIN_SCREEN = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, 320, 240);
+	MAIN_SCREEN = SDL_CreateTexture(sdlRenderer, SDL_PIXELFORMAT_RGBA5551, SDL_TEXTUREACCESS_STREAMING, 320, 240);
+	if (MAIN_SCREEN == NULL)
+	{
+		fprintf(stderr, "error: failed to create main screen texture : %s\n", SDL_GetError());
+		exit(1);
+	}
 
+#ifdef N64
+	int pitch;
+	SDL_LockTexture(MAIN_SCREEN, NULL, (void**)&BUFF_BASE_ADDRESS, &pitch);
+	if (BUFF_BASE_ADDRESS == NULL)
+	{
+		fprintf(stderr, "error: failed to lock texture : %s\n", SDL_GetError());
+		exit(1);
+	}
+	SDL_UnlockTexture(MAIN_SCREEN);
+#else
 	BUFF_BASE_ADDRESS = (unsigned short*)malloc(320 * 240 * sizeof(unsigned short));
+#endif
+
 #else
 	vita2d_texture_set_alloc_memblock_type(SCE_KERNEL_MEMBLOCK_TYPE_USER_RW);
 	MAIN_SCREEN = (SDL_Texture *)vita2d_create_empty_texture_format(320, 240, SCE_GXM_TEXTURE_FORMAT_U5U6U5_RGB);
@@ -100,7 +127,7 @@ void toggleFullscreen()
 
 void constrainFrameRate(int fps)
 {
-#ifndef VITA
+#if !defined VITA && !defined N64
 	static Uint32 secondCount = 1001, secondBase = 0, FPScount = 0, FPSdisp = 0;
 	int x, y;
 	Uint32 d = 1000 / fps;
@@ -124,21 +151,27 @@ void displayFrameRate()
 		secondCount = 0;
 		secondBase = SDL_GetTicks();
 	}
-	x = 150, y = 230;
+	x = 150, y = 220;
 	drawDecimal(&x, &y, FPSdisp, 0xffff, 0);
 }
 
 void updateScreen()
 {
+#ifdef N64
+	SDL_RenderCopy(sdlRenderer, MAIN_SCREEN, NULL, NULL);
+	SDL_RenderPresent(sdlRenderer);
+	updateKeys();
+	return;
+#else
+
 #ifndef VITA2D
 	static int toggled = 0;
-	int di;
 	uint8_t *pixels;
 	uint8_t *buf = (uint8_t*)BUFF_BASE_ADDRESS;
 	int pitch;
 	SDL_LockTexture(MAIN_SCREEN, NULL, (void**)&pixels, &pitch);
-#ifndef VITA	
-	for (di = 0; di < 320 * 240 * sizeof(unsigned short); di += sizeof(unsigned int))
+#if !defined VITA
+	for (int di = 0; di < 320 * 240 * sizeof(unsigned short); di += sizeof(unsigned int))
 		*(unsigned int*)(pixels + di) = *(unsigned int*)(buf + di);
 #else
 	sceClibMemcpy(pixels, buf, 320 * 240 * sizeof(unsigned short));
@@ -166,6 +199,8 @@ void updateScreen()
 	vita2d_swap_buffers();
 #endif
 	updateKeys();
+
+#endif
 }
 
 void updateKeys()
@@ -312,6 +347,9 @@ int interpolatePathFloat(int curT, float _x[], float _y[], int _t[], int nb, Rec
 
 void clearBufferB()
 {
+#ifdef N64
+	return;
+#endif
 #ifdef VITA
 	sceClibMemset(BUFF_BASE_ADDRESS, 0, 320 * 240 * 2);
 #else
@@ -323,6 +361,9 @@ void clearBufferB()
 
 void clearBufferW()
 {
+#ifdef N64
+	return;
+#endif
 #ifdef VITA
 	sceClibMemset(BUFF_BASE_ADDRESS, 0xFF, 320 * 240 * 2);
 #else
@@ -334,13 +375,16 @@ void clearBufferW()
 
 void clearBuffer(unsigned short c)
 {
+#ifdef N64
+	return;
+#endif
 	int i;
 	unsigned int ci = (c << 16) | c;
 	for(i = 0; i < 160 * 240; i++)
 			*((unsigned int*)BUFF_BASE_ADDRESS + i) = ci;
 }
 
-#ifndef VITA
+#if !defined VITA && !defined N64
 unsigned short getPixelUnsafe(const unsigned short *src, unsigned int x, unsigned int y)
 {
 	return src[x + y * src[0] + 3];

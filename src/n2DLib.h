@@ -66,7 +66,7 @@ extern Uint32 timer_read(unsigned);
 extern void clearBufferB();
 extern void clearBufferW();
 extern void clearBuffer(unsigned short);
-#ifndef VITA
+#if !defined VITA && !defined N64
 extern unsigned short getPixelUnsafe(const unsigned short*, unsigned int, unsigned int);
 extern unsigned short getPixel(const unsigned short*, unsigned int, unsigned int);
 extern void setPixelUnsafe(unsigned int, unsigned int, unsigned short);
