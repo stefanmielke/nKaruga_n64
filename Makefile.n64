@@ -1,0 +1,48 @@
+V=1
+SOURCE_DIR=src
+BUILD_DIR=build_n64
+N64_DFS_OFFSET=3M
+SDL2_ROOT_DIR=SDL2/n64/SDL2
+
+include $(N64_INST)/include/n64.mk
+include SDL2/n64/SDL2/Makefile_sdl2.mk
+
+N64_CXXFLAGS += -ISDL2/n64/SDL2/include -Wno-error=unused-variable -Wno-error=delete-non-virtual-dtor -Wno-error=unused-but-set-variable
+N64_CFLAGS += -ISDL2/n64/SDL2/include -Wno-error=unused-variable
+
+N64_ROM_TITLE = "nKaruga 64"
+N64_ROM_SAVETYPE = none
+N64_ROM_REGIONFREE = true
+N64_ROM_RTC = false
+
+C_FILES := $(wildcard src/*.cpp)
+N2D_FILES := $(wildcard src/*.c)
+
+SRC = $(C_SDL_FILES) $(N2D_FILES)
+SRC_CPP = $(C_FILES)
+OBJS = $(SRC:%.c=%.o) $(SRC_CPP:%.cpp=%.o)
+DEPS = $(SRC:%.c=%.d) $(SRC_CPP:%.cpp=%.d)
+
+all: nKaruga.z64
+nKaruga.z64: $(BUILD_DIR)/nKaruga.dfs
+
+$(BUILD_DIR)/nKaruga.dfs: $(wildcard sfx/*)
+	$(N64_MKDFS) $@ sfx
+
+$(BUILD_DIR)/nKaruga.elf: $(OBJS)
+
+clean:
+	find . -name '*.v64' -delete
+	find . -name '*.z64' -delete
+	find . -name '*.elf' -delete
+	find . -name '*.o' -delete
+	find . -name '*.d' -delete
+	find . -name '*.bin' -delete
+	find . -name '*.plan_bak*' -delete
+	find . -name '*.dfs' -delete
+	find . -name '*.raw' -delete
+	find . -name '*.z64' -delete
+
+-include $(DEPS)
+
+.PHONY: all clean

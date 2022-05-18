@@ -10,6 +10,9 @@
 #include <vitasdk.h>
 int _newlib_heap_size_user = 192 * 1024 * 1024;
 #endif
+#ifdef N64
+#include <libdragon.h>
+#endif
 
 #define ENEMY_W(i) Level::enemiesArray->data[i].img[0]
 #define ENEMY_H(i) Level::enemiesArray->data[i].img[1]
@@ -95,6 +98,13 @@ int main(int argc, char **argv)
 	UNUSED(argc);
 	UNUSED(argv);
 
+#ifdef N64
+	dfs_init(0xB0301000);
+
+	debug_init_isviewer();
+	debug_init_usblog();
+#endif
+
 	int blink = 0;
 	bool donePlaying = false, openedMenu = false;
 	G_usingArrows = false;
@@ -139,7 +149,11 @@ int main(int argc, char **argv)
 	initExplosionEngine();
 	timer_load(1, 0);
 
+#ifdef N64
+	while(true)
+#else
 	while(!donePlaying)
+#endif
 	{
 		const Uint8 *keys = SDL_GetKeyboardState(NULL);
 
@@ -344,11 +358,15 @@ void playGame()
 			if (Level::phase == PHASE_BOSSCINEMATIC && G_bossIntroChannel == -2)
 			{
 				G_bossIntroChannel = Level::soundSystem->quickPlaySFX(sound_entries[SD_BOSS_ALERT]);
+#ifndef N64
 				Mix_ChannelFinished(bossIntroDone);
+#endif
 				G_runBoss = true;
 				if (G_bossIntroChannel == -1)
 				{
+#ifndef N64
 					printf("Error happened : %s\n", Mix_GetError());
+#endif
 				}
 			}
 		}

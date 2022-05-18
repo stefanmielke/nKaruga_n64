@@ -19,7 +19,7 @@ void BulletArray::handle()
 	int bossDamaged;
 	
 	// Bullets
-	for (unsigned int i = 0; i < bulletCount; i++)
+	for (int i = 0; i < bulletCount; i++)
 	{
 		Bullet *cb = &data[i];
 		destroyBullet = false;
@@ -110,7 +110,7 @@ void BulletArray::handle()
 	}	
 	
 	// Power fragments
-	for(unsigned int i = 0; i < fragmentCount; i++)
+	for(int i = 0; i < fragmentCount; i++)
 	{
 		PowerFragment *cf = &data_fragment[i];
 		destroyBullet = false;
@@ -193,7 +193,7 @@ void BulletArray::handle()
 	}
 	
 	// Homings
-	for(unsigned int i = 0; i < homingCount; i++)
+	for(int i = 0; i < homingCount; i++)
 	{
 		Homing* ch = &data_homing[i];
 		destroyBullet = false;
@@ -252,7 +252,7 @@ void BulletArray::handle()
 				{
 					// Uses cartesian hitbox for checking collision with player
 					// First, see if the player is behind or in front of the origin of the laser using the dot product
-					// a . b = ||a|| ||b|| cos(angle(a, b)) ; if a . b < 0 then |angle| > 90°
+					// a . b = ||a|| ||b|| cos(angle(a, b)) ; if a . b < 0 then |angle| > 90ï¿½
 					if ((fixtoi(Level::p->getx()) - r->x) * r->w + (fixtoi(Level::p->gety()) - r->y) * r->h > 0)
 					{
 						// Then, see if the player is not too far
@@ -364,7 +364,7 @@ void BulletArray::deactivate(int n, bool playSound)
 {
 	bulletCount--;
 	data[n].deactivate();
-	for(unsigned int i = n; i < bulletCount; i++)
+	for(int i = n; i < bulletCount; i++)
 		data[i] = data[i + 1];
 	if(playSound) Level::soundSystem->quickPlaySFX(sound_entries[SD_BULLET_IMPACT]);
 	//data[bulletCount].deactivate();
@@ -374,7 +374,7 @@ void BulletArray::deactivate_fragment(int n)
 {
 	fragmentCount--;
 	data_fragment[n].deactivate();
-	for(unsigned int i = n; i < fragmentCount; i++)
+	for(int i = n; i < fragmentCount; i++)
 		data_fragment[i] = data_fragment[i + 1];
 	//data_fragment[fragmentCount].deactivate();
 }
@@ -383,14 +383,14 @@ void BulletArray::deactivate_homing(int n)
 {
 	homingCount--;
 	data_homing[n].deactivate();
-	for(unsigned int i = n; i < homingCount; i++)
+	for(int i = n; i < homingCount; i++)
 		data_homing[i] = data_homing[i + 1];
 	//data_homing[homingCount].deactivate();
 }
 
 void BulletArray::stop_laser(Enemy *e)
 {
-	for(unsigned int i = 0; i < MAX_LASER; i++)
+	for(int i = 0; i < MAX_LASER; i++)
 	{
 		if(data_laser[i].origin == e)
 		{

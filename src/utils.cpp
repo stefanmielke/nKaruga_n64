@@ -2,6 +2,10 @@
 
 #ifdef VITA
 #include <psp2/ctrl.h>
+#elif N64
+#include <libdragon.h>
+
+extern struct controller_data keys_pressed;
 #endif
 
 int distance(int x1, int y1, int x2, int y2)
@@ -84,6 +88,30 @@ int isKeyPressed(t_key _k)
 		return (uint32_t)G_keys & SCE_CTRL_SQUARE ? 1 : 0;
 	} else if (_k == G_pauseKey) {
 		return (uint32_t)G_keys & SCE_CTRL_START ? 1 : 0;
+	} else {
+		return 0;
+	}
+#elif N64
+	if (_k == SDL_SCANCODE_ESCAPE) {
+		return keys_pressed.c[0].C_up ? 1 : 0;
+	} else if (_k == SDL_SCANCODE_RETURN) {
+		return keys_pressed.c[0].A ? 1 : 0;
+	} else if (_k == G_upKey) {
+		return keys_pressed.c[0].up ? 1 : 0;
+	} else if (_k == G_downKey) {
+		return keys_pressed.c[0].down ? 1 : 0;
+	} else if (_k == G_leftKey) {
+		return keys_pressed.c[0].left ? 1 : 0;
+	} else if (_k == G_rightKey) {
+		return keys_pressed.c[0].right ? 1 : 0;
+	} else if (_k == G_fireKey) {
+		return keys_pressed.c[0].R ? 1 : 0;
+	} else if (_k == G_fragmentKey) {
+		return keys_pressed.c[0].L || keys_pressed.c[0].Z ? 1 : 0;
+	} else if (_k == G_polarityKey) {
+		return keys_pressed.c[0].B ? 1 : 0;
+	} else if (_k == G_pauseKey) {
+		return keys_pressed.c[0].start ? 1 : 0;
 	} else {
 		return 0;
 	}

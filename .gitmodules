@@ -1,0 +1,3 @@
+[submodule "SDL2/n64"]
+	path = SDL2/n64
+	url = git@github.com:stefanmielke/sdl_n64_libdragon.git

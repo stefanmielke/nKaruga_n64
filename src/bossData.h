@@ -448,9 +448,9 @@ void boss2_icb(BossEnemy *be)
 
 		be->maxHP = be->HP = attached(boss2_ghost_leftWeakPoint)->HP + attached(boss2_ghost_rightWeakPoint)->HP;
 		// Set up internals
-		//be->setInternal(0, ANGLE_LEFTWING_UP); // approximately 15°
+		//be->setInternal(0, ANGLE_LEFTWING_UP); // approximately 15ï¿½
 		//be->setInternal(1, ANGLE_RIGHTWING_UP);
-		be->setInternal(0, ANGLE_LEFTWING_DOWN); // approximately 65°
+		be->setInternal(0, ANGLE_LEFTWING_DOWN); // approximately 65ï¿½
 		be->setInternal(1, ANGLE_RIGHTWING_DOWN);
 		attached(boss2_ghost_leftUpperArm)->rotationAngle = ANGLE_LEFTUPPERARM_UP;
 		attached(boss2_ghost_rightUpperArm)->rotationAngle = ANGLE_RIGHTUPPERARM_UP;

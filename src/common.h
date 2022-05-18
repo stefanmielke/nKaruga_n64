@@ -8,7 +8,13 @@
 #include <string.h>
 #include <vector>
 #include <stack>
+
+#ifdef N64
+#define Mix_Chunk void
+#define Mix_Music void
+#else
 #include <SDL_mixer.h>
+#endif
 
 #include "n2DLib.h"
 
@@ -619,9 +625,9 @@ private:
 // General purpose menu handler
 typedef struct
 {
-	char *name;
+	const char *name;
 	void *value;
-	char **labels;
+	const char **labels;
 	int labelsNb;
 } MenuItem;
 
@@ -633,9 +639,9 @@ public:
 	// Returns the index of the chosen option, or -1 if the menu was exitted
 	int run();
 private:
-	std::vector<char*> options;
+	std::vector<const char*> options;
 	std::vector<void*> values;
-	std::vector< std::vector<char*> > labels;
+	std::vector< std::vector<const char*> > labels;
 	int num;
 	int maxOptionWidth;
 	int width;

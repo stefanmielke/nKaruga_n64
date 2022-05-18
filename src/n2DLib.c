@@ -13,6 +13,10 @@ extern "C" {
 #ifdef VITA
 #include <vitasdk.h>
 #include <vita2d.h>
+#elif N64
+#include <libdragon.h>
+
+struct controller_data keys_pressed;
 #endif
 
 /*             *
@@ -36,12 +40,14 @@ void initBuffering()
 #endif
 #ifndef VITA2D
 	// This fixes the fullscreen/resize crash, see line 97
-#ifndef VITA
-	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
-	SDL_CreateWindowAndRenderer(320 * 2, 240 * 2, SDL_WINDOW_BORDERLESS, &sdlWindow, &sdlRenderer);
-#else
+#ifdef VITA
 	sdlWindow = SDL_CreateWindow("nKaruga", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 544, SDL_WINDOW_FULLSCREEN_DESKTOP);  
 	sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+#elif N64
+	SDL_CreateWindowAndRenderer(320, 240, SDL_WINDOW_BORDERLESS, &sdlWindow, &sdlRenderer);
+#else
+	SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+	SDL_CreateWindowAndRenderer(320 * 2, 240 * 2, SDL_WINDOW_BORDERLESS, &sdlWindow, &sdlRenderer);
 #endif
 
 	SDL_RenderSetLogicalSize(sdlRenderer, 320, 240);
@@ -60,7 +66,7 @@ void initBuffering()
 	MAIN_SCREEN = (SDL_Texture *)vita2d_create_empty_texture_format(320, 240, SCE_GXM_TEXTURE_FORMAT_U5U6U5_RGB);
 	BUFF_BASE_ADDRESS = (unsigned short*)vita2d_texture_get_datap((vita2d_texture *)MAIN_SCREEN);
 #endif
-	memset(BUFF_BASE_ADDRESS, 0, sizeof(BUFF_BASE_ADDRESS));
+	memset(BUFF_BASE_ADDRESS, 0, sizeof(*BUFF_BASE_ADDRESS));
 
 	baseFPS = SDL_GetTicks();
 	SDL_PumpEvents();
@@ -68,6 +74,8 @@ void initBuffering()
 	SceCtrlData pad;
 	sceCtrlPeekBufferPositive(0, &pad, 1);
 	G_keys = pad.buttons;
+#elif N64
+	controller_init();
 #else
 	G_keys = SDL_GetKeyboardState(NULL);
 #endif
@@ -127,7 +135,7 @@ void updateScreen()
 	sceClibMemcpy(pixels, buf, 320 * 240 * sizeof(unsigned short));
 #endif
 	SDL_UnlockTexture(MAIN_SCREEN);
-#ifndef VITA	
+#if !defined VITA && !defined N64
 	if(G_keys[SDL_SCANCODE_F])
 	{
 		if(!toggled)
@@ -158,6 +166,9 @@ void updateKeys()
 	SceCtrlData pad;
 	sceCtrlPeekBufferPositive(0, &pad, 1);
 	G_keys = pad.buttons;
+#elif N64
+	controller_scan();
+	keys_pressed = get_keys_pressed();
 #else
 	G_keys = SDL_GetKeyboardState(NULL);
 #endif
@@ -767,6 +778,11 @@ void wait_no_key_pressed(t_key k)
 	while (G_keys) {
 		sceCtrlPeekBufferPositive(0, &pad, 1);
 		G_keys = pad.buttons;
+	}
+#elif N64
+	while (!keys_pressed.c[0].data) {
+		fprintf(stderr, "press any button!\n");
+		keys_pressed = get_keys_pressed();
 	}
 #else
 	while (G_keys[k])

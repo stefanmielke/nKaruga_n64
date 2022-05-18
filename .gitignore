@@ -1,4 +1,5 @@
 *.o
+*.d
 *.velf
 *.elf
 *.bin
@@ -10,3 +11,7 @@ screenshots
 *.db
 /.Rhistory
 /.directory
+
+/.vscode/
+/build_n64/
+*.z64

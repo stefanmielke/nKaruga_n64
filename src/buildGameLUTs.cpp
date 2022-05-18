@@ -176,6 +176,7 @@ void buildGameLUTs()
 	bgImage_entries[bgImage_LUT_2_6] = image_bg2_6;
 	bgImage_entries[bgImage_LUT_2_7] = image_bg2_7;
 	
+#ifndef N64
 	/* SFX */
 	// Sounds
 	for (int i = 0; i < NB_SOUNDS; i++)
@@ -191,14 +192,17 @@ void buildGameLUTs()
 		music_entries[i] = Mix_LoadMUS(musicList[i]);
 		printf("done\n");
 	}
+#endif
 }
 
 void freeGameLUTs()
 {
+#ifndef N64
 	// Sounds
 	for (int i = 0; i < NB_SOUNDS; i++)
 		Mix_FreeChunk(sound_entries[i]);
 	// Background musics
 	for (int i = 0; i < NB_MUSICS; i++)
 		Mix_FreeMusic(music_entries[i]);
+#endif
 }

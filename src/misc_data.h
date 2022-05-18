@@ -7,14 +7,14 @@ static const char string_title[] = "Press Enter to start or Escape to quit";
 
 static const char string_continue[] = "Continue ? (Enter/Esc : yes/no)";
 
-static char* string_bools[] = { "no\n", "yes\n" };
+static const char* string_bools[] = { "no\n", "yes\n" };
 
 #ifdef VITA
 #define TITLE_OPTIONS 3
 #else
 #define TITLE_OPTIONS 4
 #endif
-static char* string_options[TITLE_OPTIONS] = {
+static const char* string_options[TITLE_OPTIONS] = {
 	"nPlay\n",
 	"iDifficulty:",
 	"bUse arrow keys:",
@@ -24,14 +24,14 @@ static char* string_options[TITLE_OPTIONS] = {
 };
 
 #define KEYS_TO_BIND 4
-static char *string_keys[KEYS_TO_BIND] = {
+static const char *string_keys[KEYS_TO_BIND] = {
 	"Fire\n",
 	"Switch polarity\n",
 	"Release power\n",
 	"Pause the game\n"
 };
 
-static char *string_difficulties[] = {
+static const char *string_difficulties[] = {
 	"Easy\n",
 	"Normal\n",
 	"Hard\n"

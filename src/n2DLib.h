@@ -62,7 +62,7 @@ extern void updateScreen();
 extern void updateKeys();
 extern void deinitBuffering();
 extern void timer_load(unsigned, Uint32);
-extern unsigned timer_read(unsigned);
+extern Uint32 timer_read(unsigned);
 extern void clearBufferB();
 extern void clearBufferW();
 extern void clearBuffer(unsigned short);
