@@ -7,8 +7,8 @@ SDL2_ROOT_DIR=SDL2/n64/SDL2
 include $(N64_INST)/include/n64.mk
 include SDL2/n64/SDL2/Makefile_sdl2.mk
 
-N64_CXXFLAGS += -ISDL2/n64/SDL2/include -Wno-error=unused-variable -Wno-error=delete-non-virtual-dtor -Wno-error=unused-but-set-variable
-N64_CFLAGS += -ISDL2/n64/SDL2/include -Wno-error=unused-variable
+N64_CXXFLAGS += -Wno-error=unused-variable -Wno-error=delete-non-virtual-dtor -Wno-error=unused-but-set-variable
+N64_CFLAGS += -Wno-error=unused-variable
 
 N64_ROM_TITLE = "nKaruga 64"
 N64_ROM_SAVETYPE = none
