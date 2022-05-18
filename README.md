@@ -1,3 +1,37 @@
+# nKaruga N64
+
+nKaruga port for the Nintendo 64.
+
+## Controls
+
+Confirm: A
+Shoot: R
+Change Mode: B
+Options: C Up
+Pause: Start
+
+## Status
+
+Glitched graphics (still have to convert all images to RGBA5551).
+
+Runs better on real hardware (but not full-speed). Will struggle on emulators.
+
+Music/sounds not implemented.
+
+## Changes from Original
+
+- Moved to RGBA5551 to improve performance. SDL2 copies creates another buffer when the format is not the same as the target texture used by the window.
+- No sounds.
+
+## Building
+
+- Clone the repo **with submodules**
+- Use `libdragon` to run `build.sh`.
+
+---
+---
+## ORIGINAL README
+
 # nKaruga
 
 nKaruga originated on the TI-Nspire calculator series as a C++ game that I started writing order to get better at programming games. The now outdated code to this version is freely readable at [its own repository](https://github.com/matrefeytontias/nKaruga-deprecated-Nspire-version-). It is not out of the question that I port this game back to its original platform when I am done with it.
